@@ -1,7 +1,6 @@
 package fi.solita.hnybom.aoc2022.days
 
 import java.io.File
-import java.lang.IllegalArgumentException
 
 class Day2 {
 
@@ -12,7 +11,7 @@ class Day2 {
                 row[0] to row[1]
             }
 
-    private val playedSelection = mapOf (
+    private val playedSelection = mapOf(
         "X" to 1,
         "Y" to 2,
         "Z" to 3
@@ -54,10 +53,10 @@ class Day2 {
         )
     )
 
-    private val outcome = mapOf (
+    private val outcome = mapOf(
         "X" to 0,
         "Y" to 3,
-        "Z" to 6
+        "Z" to 6,
     )
 
     private fun round1(hands: Pair<String, String>) = playedSelection[hands.second]!! + scoreMap[hands.first]!![hands.second]!!
