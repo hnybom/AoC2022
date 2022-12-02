@@ -38,19 +38,19 @@ class Day2 {
 
     private val selectionMap = mapOf(
         "A" to mapOf(
-            "X" to "C",
-            "Y" to "A",
-            "Z" to "B",
+            "X" to 3,
+            "Y" to 1,
+            "Z" to 2,
         ),
         "B" to mapOf(
-            "X" to "A",
-            "Y" to "B",
-            "Z" to "C",
+            "X" to 1,
+            "Y" to 2,
+            "Z" to 3,
         ),
         "C" to mapOf(
-            "X" to "B",
-            "Y" to "C",
-            "Z" to "A",
+            "X" to 2,
+            "Y" to 3,
+            "Z" to 1,
         )
     )
 
@@ -60,15 +60,9 @@ class Day2 {
         "Z" to 6
     )
 
-    private val playedSelection2 = mapOf (
-        "A" to 1,
-        "B" to 2,
-        "C" to 3
-    )
-
     private fun round1(hands: Pair<String, String>) = playedSelection[hands.second]!! + scoreMap[hands.first]!![hands.second]!!
 
-    private fun round2(hands: Pair<String, String>) = outcome[hands.second]!! + playedSelection2[selectionMap[hands.first]!![hands.second]!!]!!
+    private fun round2(hands: Pair<String, String>) = outcome[hands.second]!! + selectionMap[hands.first]!![hands.second]!!
 
     fun part1(): String {
         val result = input.sumOf { round1(it) }
