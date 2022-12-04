@@ -12,7 +12,7 @@ class Day4 {
             .map {
                 val firstRange = it[0].split("-")
                 val secondRange = it[1].split("-")
-                firstRange[0].toInt().. firstRange[1].toInt() to secondRange[0].toInt().. secondRange[1].toInt()
+                firstRange[0].toInt()..firstRange[1].toInt() to secondRange[0].toInt()..secondRange[1].toInt()
             }
 
     fun part1(): String {
