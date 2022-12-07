@@ -87,23 +87,22 @@ class Day7 {
         calculateTreeSize(root)
     }
 
-    private fun filterTreeByTotalSize(currentDir: Dir, acc: List<Dir>, filter: (Long) -> Boolean): List<Dir> {
+    private fun filterTreeByTotalSize(currentDir: Dir, filter: (Long) -> Boolean): List<Dir> {
         val childDirs = currentDir.children.flatMap {
             when (it) {
-                is Dir -> filterTreeByTotalSize(it, acc, filter)
+                is Dir -> filterTreeByTotalSize(it, filter)
                 else -> emptyList()
             }
         }
 
-        val newAcc = if(filter(currentDir.totalSize)) {
-            acc + currentDir
-        } else acc
+        return if(filter(currentDir.totalSize)) {
+            childDirs + currentDir
+        } else childDirs
 
-        return childDirs + newAcc
     }
 
     fun part1(): String {
-        val underMax = filterTreeByTotalSize( root, emptyList()) { size ->
+        val underMax = filterTreeByTotalSize( root ) { size ->
             size <= 100000
         }
         val totalSum = underMax.sumOf { it.totalSize }
@@ -115,7 +114,7 @@ class Day7 {
         val neededSpace = 30000000L
 
         val sizeToDelete = neededSpace - (totalSizeOfFS - root.totalSize)
-        val candidates = filterTreeByTotalSize(root, emptyList()) { size ->
+        val candidates = filterTreeByTotalSize(root) { size ->
             size > sizeToDelete
         }
         val selection = candidates.minBy { it.totalSize }
