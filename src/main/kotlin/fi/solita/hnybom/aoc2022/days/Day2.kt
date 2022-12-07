@@ -73,6 +73,7 @@ class Day2 {
         return "Total $result"
     }
 }
+
 fun main(args: Array<String>) {
     val d = Day2()
     println(d.part1())
