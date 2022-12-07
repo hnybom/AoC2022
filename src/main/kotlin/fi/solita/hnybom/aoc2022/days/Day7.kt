@@ -1,13 +1,13 @@
 package fi.solita.hnybom.aoc2022.days
 
 import java.io.File
-import java.lang.IllegalStateException
 
 class Day7 {
 
-    interface FileSystemNode {
+    sealed interface FileSystemNode {
         val name: String
     }
+
     data class Dir(
         override val name: String, val parent: Dir?,
         var children: List<FileSystemNode>, var totalSize : Long = 0) : FileSystemNode {
@@ -16,6 +16,7 @@ class Day7 {
         override fun toString() = EssentialData(this).toString()
 
     }
+
     data class XFile(override val name: String, val size: Int, val parent: Dir) : FileSystemNode
 
     private data class EssentialData(val name: String, val totalSize: Long) {
@@ -76,7 +77,6 @@ class Day7 {
             when (it) {
                 is Dir -> calculateTreeSize(it)
                 is XFile -> it.size.toLong()
-                else -> throw IllegalStateException()
             }
         }
         return currentDir.totalSize
