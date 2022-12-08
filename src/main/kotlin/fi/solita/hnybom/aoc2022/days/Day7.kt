@@ -24,7 +24,7 @@ class Day7 {
     }
 
     private val input =
-        File("/home/henriny/work/own/AoC2022/src/main/resources/input7.txt")
+        File("/Users/hnybom/work/AoC2022/src/main/resources/input7.txt")
             .readLines()
 
     private val root = Dir("/", null, emptyList())
@@ -43,15 +43,9 @@ class Day7 {
                 }
                 else -> {
                     val dirName = command.substring(5)
-                    val existingDir = currentDir.children.find { it.name == dirName }
-                    val subDir = if(existingDir != null) {
-                        existingDir
-                    } else {
-                        val newDir = Dir(dirName, currentDir, emptyList())
-                        currentDir.children = currentDir.children + newDir
-                        newDir
-                    }
-                    crawl(commands.drop(1), subDir as Dir)
+                    val newDir = Dir(dirName, currentDir, emptyList())
+                    currentDir.children = currentDir.children + newDir
+                    crawl(commands.drop(1), newDir)
                 }
             }
         } else if(command.startsWith("$ ls")) {
@@ -59,16 +53,14 @@ class Day7 {
                 !it.startsWith("$")
             }
 
-            val filesAndDirs = listing.map {
+            val filesAndDirs = listing.mapNotNull {
                 val listing = it.split(" ")
-                if(listing[0] == "dir") {
-                    Dir(listing[1], currentDir, emptyList())
-                } else {
+                if(listing[0] != "dir") {
                     XFile(listing[1], listing[0].toInt(), currentDir)
-                }
+                } else null
             }
             currentDir.children = currentDir.children + filesAndDirs
-            crawl(commands.drop(1 + filesAndDirs.size), currentDir)
+            crawl(commands.drop(1 + listing.size), currentDir)
         }
     }
 
@@ -98,7 +90,6 @@ class Day7 {
         return if(filter(currentDir.totalSize)) {
             childDirs + currentDir
         } else childDirs
-
     }
 
     fun part1(): String {
