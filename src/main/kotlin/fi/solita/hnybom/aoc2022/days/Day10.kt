@@ -47,10 +47,7 @@ class Day10 {
     fun part1(): String {
         val cycleValues = generateCycles()
         val cycleAmounts = interestingCycles.map {
-            val xValues = cycleValues.take(it)
-            val x = xValues.last()
-            println("x value at $it : $x")
-            x * it
+            cycleValues.take(it).last() * it
         }
 
         val sumOfCycles = cycleAmounts.sumOf { it }
