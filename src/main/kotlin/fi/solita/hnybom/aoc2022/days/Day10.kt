@@ -23,7 +23,7 @@ class Day10 {
             }
 
     private val interestingCycles = listOf(20, 60, 100, 140, 180, 220)
-    private val drawingCycles = listOf(0, 40, 80, 120, 160, 200)
+    private val drawingCycles = interestingCycles.map { it - 20 }
 
     // Tripe 1. input index 2. X amount 3. current commandCycle
     fun generateCycles() : Sequence<Int> {
@@ -41,14 +41,9 @@ class Day10 {
         }.map { it.second }
     }
 
-    private val crtRow = "........................................"
-
     fun part1(): String {
         val cycleValues = generateCycles()
-        val cycleAmounts = interestingCycles.map {
-            cycleValues.take(it).last() * it
-        }
-
+        val cycleAmounts = interestingCycles.map { cycleValues.take(it).last() * it }
         val sumOfCycles = cycleAmounts.sumOf { it }
         return "Sum of cycles: $sumOfCycles"
     }
@@ -56,11 +51,10 @@ class Day10 {
     fun part2() {
         val cycleValues = generateCycles()
         val rows = drawingCycles.map {
-            cycleValues.drop(it).take(40).foldIndexed(crtRow) { i, row, location ->
+            cycleValues.drop(it).take(40).foldIndexed("") { i, row, location ->
                 val litPixels = (location - 1)..(location + 1)
-                if(litPixels.contains(i)) {
-                    row.substring(0, i) + "#" + row.substring(i + 1)
-                } else row
+                if(litPixels.contains(i)) "$row#"
+                else "$row."
             }
         }
         rows.forEach {
@@ -68,6 +62,7 @@ class Day10 {
         }
     }
 }
+
 fun main(args: Array<String>) {
     val d = Day10()
     println(d.part1())
