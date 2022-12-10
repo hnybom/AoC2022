@@ -10,7 +10,6 @@ class Day10 {
     }
 
     data class Instruction(val c: COMMAND, val amount: Int?)
-    data class CycleCounter(val inputIndex: Int, val x: Int, val innerCycle: Int)
 
     private val input =
         File("/Users/hnybom/work/AoC2022/src/main/resources/input10.txt")
