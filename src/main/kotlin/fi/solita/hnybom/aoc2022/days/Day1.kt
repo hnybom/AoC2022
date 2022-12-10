@@ -18,7 +18,7 @@ class Day1 {
         return "Top 3 total $topThreeTotal"
     }
 }
-fun main(args: Array<String>) {
+fun main() {
     val d = Day1()
     println(d.part1())
     println(d.part2())

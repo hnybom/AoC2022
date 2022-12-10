@@ -7,7 +7,7 @@ class Day8 {
     data class Tree(val coords: Coordinate, val height: Int)
 
     private val input =
-        File("/home/henriny/work/own/AoC2022/src/main/resources/input8.txt")
+        File("/Users/hnybom/work/AoC2022/src/main/resources/input8.txt")
             .readLines()
             .flatMapIndexed {
                 y, str -> str.toCharArray()
@@ -82,17 +82,20 @@ class Day8 {
     }
 
     fun part1(): String {
+        val start = System.currentTimeMillis()
         val visbleTrees = input.values.filter {
             !isTreeInvisible(it)
         }
+        println("Elapsed: ${System.currentTimeMillis() - start}")
         return "Invisible trees count ${visbleTrees.size}"
     }
 
     fun part2(): String {
+        val start = System.currentTimeMillis()
         val treesWithScore = input.values.map {
             it to calculateScenicScoreForTree(it)
         }
-
+        println("Elapsed: ${System.currentTimeMillis() - start}")
         val bestTree = treesWithScore.maxBy { it.second }
 
         return "Best scenic score: ${bestTree}"
