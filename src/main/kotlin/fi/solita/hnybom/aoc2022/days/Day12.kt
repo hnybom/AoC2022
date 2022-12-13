@@ -84,10 +84,11 @@ class Day12 {
     }
 
     fun part2(): String {
+        val now = System.currentTimeMillis()
         val lowestPoints = nodes.values.filter { it.getProcessedHeight() == 'a' }
         val paths = lowestPoints.map { dijkstra(nodes, it, target) }.filter { it != 0L }
         val shortest = paths.minBy { it }
-        return "Shortest path from any a $shortest"
+        return "Shortest path from any a $shortest in ${System.currentTimeMillis() - now}ms"
     }
 }
 fun main(args: Array<String>) {
