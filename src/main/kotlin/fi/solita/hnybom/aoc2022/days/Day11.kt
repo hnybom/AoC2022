@@ -1,5 +1,6 @@
 package fi.solita.hnybom.aoc2022.days
 
+import fi.solita.hnybom.aoc2022.utils.Helpers
 import java.io.File
 
 class Day11 {
@@ -18,7 +19,7 @@ class Day11 {
         }
     }
 
-    fun getMonkeyMap() = File("/Users/hnybom/work/AoC2022/src/main/resources/input11.txt")
+    private fun getMonkeyMap() = File("/Users/hnybom/work/AoC2022/src/main/resources/input11.txt")
             .readText().split("\n\n").mapIndexed { i, monkeyDataString ->
                 val monkeyData = monkeyDataString.split("\n")
                 val startingItems = monkeyData[1].split(":")[1].split(",").map { it.trim().toLong() }
@@ -39,7 +40,7 @@ class Day11 {
                 )
             }.toMap()
 
-    fun simulateMonkey(map: Map<Int, Monkey>, monkey: Monkey) {
+    private fun simulateMonkey(map: Map<Int, Monkey>, monkey: Monkey) {
         monkey.items.forEach {
             val itemWorry = monkey.calculateNewWorry(it)
             val bored = itemWorry / 3
@@ -69,7 +70,8 @@ class Day11 {
         monkey.items = emptyList()
     }
 
-    tailrec fun monkeySimulator(map: Map<Int, Monkey>, rounds: Int, monkeySimulator: (Map<Int, Monkey>, Monkey) -> Unit) {
+    private tailrec fun monkeySimulator(map: Map<Int, Monkey>,
+                                        rounds: Int, monkeySimulator: (Map<Int, Monkey>, Monkey) -> Unit) {
         if(rounds == 0) return
         map.values.forEach {
             monkeySimulator(map, it)
@@ -88,12 +90,12 @@ class Day11 {
 
     fun part2(): String {
         val map = getMonkeyMap()
-
+        val timer = Helpers.PerformanceTime()
         monkeySimulator(map, 10000, this::simulateMonkey2)
         val answer = map.values.sortedByDescending { it.itemsInspected }
             .take(2).map { it.itemsInspected  }.reduce { acc, i -> acc * i }
+        timer.time()
         return "Second part monkey business $answer"
-        return ""
     }
 }
 fun main(args: Array<String>) {
