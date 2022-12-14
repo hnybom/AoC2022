@@ -34,10 +34,10 @@ class Day13 {
                     }
                 }
                 (first is XList && second is XInt) -> {
-                    areInRightOrder(first, XList(entities = listOf(second).toMutableList(), null, ""))
+                    areInRightOrder(first, XList(entities = listOf(second).toMutableList(), null))
                 }
                 (first is XInt && second is XList) -> {
-                    areInRightOrder(XList(entities = listOf(first).toMutableList(), null, ""), second)
+                    areInRightOrder(XList(entities = listOf(first).toMutableList(), null), second)
                 }
                 else -> throw IllegalStateException()
             }
@@ -46,22 +46,13 @@ class Day13 {
 
     sealed interface ListEntity : Comparable<ListEntity> {
         val parent: ListEntity?
-        val string: String
     }
-    data class XList(val entities: MutableList<ListEntity>, override val parent: ListEntity?,
-                     override val string: String) : ListEntity {
+    data class XList(val entities: MutableList<ListEntity>, override val parent: ListEntity?) : ListEntity {
         override fun compareTo(other: ListEntity): Int {
             return when(areInRightOrder(this, other)) {
                 null -> 0
                 true -> -1
                 false -> 1
-            }
-        }
-
-        override fun equals(other: Any?): Boolean {
-            return when(other) {
-                is XList -> string == other.string
-                else -> false
             }
         }
 
@@ -69,20 +60,13 @@ class Day13 {
         override fun toString() = EssentialDataList(this).toString()
     }
 
-    data class XInt(val value: Int, override val parent: ListEntity?, override val string: String) : ListEntity {
+    data class XInt(val value: Int, override val parent: ListEntity?) : ListEntity {
 
         override fun compareTo(other: ListEntity): Int {
             return when(areInRightOrder(this, other)) {
                 null -> 0
                 true -> -1
                 false -> 1
-            }
-        }
-
-        override fun equals(other: Any?): Boolean {
-            return when(other) {
-                is XList -> string == other.string
-                else -> false
             }
         }
 
@@ -114,7 +98,7 @@ class Day13 {
                 else if(it == ']') openCount--
                 openCount != 0
             }
-            val current = XList(ArrayList(), parent, str)
+            val current = XList(ArrayList(), parent)
             val children = parse(listContents.drop(1), current)
             current.entities.addAll(children)
             val left = str.drop(listContents.length + 2)
@@ -128,7 +112,7 @@ class Day13 {
             val end = split.takeLastWhile { !it.contains(']') }
             val numbers = if(start != end) start + end else start
             val numbersList = numbers.map {
-                XInt(it.toInt(), parent, str)
+                XInt(it.toInt(), parent)
             }
             val startDropped = str.drop(start.sumOf { it.length } + start.size)
             val left = startDropped.dropLast(end.sumOf { it.length } + end.size)
@@ -139,7 +123,7 @@ class Day13 {
             throw IllegalArgumentException("Unexpected char: $c")
         }
     }
-    
+
     fun part1(): String {
         val rightOrder = input.chunked(2).mapIndexedNotNull { index, listEntities ->
             val first = listEntities[0]
