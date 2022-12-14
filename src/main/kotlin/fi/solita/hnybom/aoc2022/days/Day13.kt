@@ -139,9 +139,7 @@ class Day13 {
             throw IllegalArgumentException("Unexpected char: $c")
         }
     }
-
-
-
+    
     fun part1(): String {
         val rightOrder = input.chunked(2).mapIndexedNotNull { index, listEntities ->
             val first = listEntities[0]
@@ -149,14 +147,12 @@ class Day13 {
             if(areInRightOrder(first, second) == true) index + 1
             else null
         }
-
         return "The sum of indexes: ${rightOrder.sum()}"
     }
 
     fun part2(): String {
-
-        val add2 = parse("[[2]]", null).first()!!
-        val add6 = parse("[[6]]", null).first()!!
+        val add2 = parse("[[2]]", null).first()
+        val add6 = parse("[[6]]", null).first()
         val secondPartInput = input + add2 + add6
         val ordered = secondPartInput.sorted()
         val index2 = ordered.indexOfFirst { it == add2 } + 1
