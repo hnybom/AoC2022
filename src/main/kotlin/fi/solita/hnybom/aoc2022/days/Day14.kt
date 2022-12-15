@@ -1,5 +1,6 @@
 package fi.solita.hnybom.aoc2022.days
 
+import fi.solita.hnybom.aoc2022.utils.Helpers
 import java.io.File
 class Day14 {
 
@@ -31,7 +32,7 @@ class Day14 {
             }
 
     private val bottomY = input.maxOf { it.key.second }
-    private val realBottom = bottomY + 2
+    val realBottom = bottomY + 2
 
     private fun drop(loc: Coordinate, coords: Map<Coordinate, Occupied>) : Coordinate? {
         return when {
@@ -81,18 +82,25 @@ class Day14 {
     }
 
     fun part2(): String {
+        val perf = Helpers.PerformanceTime()
         val startPosition = Coordinate(500, 0)
-        val simulation = generateSequence(input) {
+        val simulation = generateSequence(input.toMutableMap()) {
             val endPosition = drop2(startPosition, it)
-            if(!it.containsKey(endPosition)) it + (endPosition to Occupied(endPosition.first, endPosition.second))
-            else null
+            if(!it.containsKey(endPosition)) {
+                it[endPosition] = Occupied(endPosition.first, endPosition.second)
+                it
+            } else null
+
         }
         simulation.takeWhile { it != null }
-        return "Simulation run ${simulation.count() - 1}"
+
+        val str = "Simulation run ${simulation.count() - 1}"
+        perf.time()
+        return str
     }
 }
 fun main(args: Array<String>) {
     val d = Day14()
-    println(d.part1())
+    //println(d.part1())
     println(d.part2())
 }
