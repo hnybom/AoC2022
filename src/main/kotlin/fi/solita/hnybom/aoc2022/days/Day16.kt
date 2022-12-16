@@ -24,6 +24,8 @@ class Day16 {
                 Valve(id, flow.toInt(), ArrayList(), pathStr.split(",").map { it.trim() })
             }.associateBy { it.id }
 
+    private val priorityList = input.values.sortedByDescending { it.flow }
+
     init {
         input.values.forEach {valve ->
             valve.paths.addAll(valve.pathIds.map { input[it]!! })
@@ -31,6 +33,31 @@ class Day16 {
     }
 
     private val start = input["AA"]!!
+
+    private fun dijkstra(map: Map<Coordinate, Valve>, start: Valve, end : Valve) : Long {
+        val costs = map.values.associateWith { Long.MAX_VALUE }.toMutableMap()
+        val route = map.values.associateWith<Valve, Valve?> { null }.toMutableMap()
+
+        costs[start] = 0
+        val q = mutableListOf(start)
+
+        while (q.isNotEmpty()) {
+            val u = q.minByOrNull { costs[it]!! }!!
+            q.remove(u)
+            u.paths.forEach { v ->
+                val alt = costs[u]!! + 1
+                if (alt < costs[v]!!) {
+                    costs[v] = alt
+                    route[v] = u
+                    if (v == end) {
+                        return alt
+                    }
+                    q.add(v)
+                }
+            }
+        }
+        return 0L
+    }
 
     private fun travel(currentValve: Valve, path: List<TraveledNode>, time: Int): List<List<TraveledNode>> {
         val node = if(time > 0 && currentValve.flow > 0 && path.find { it.valve == currentValve }?.opened != true) {
