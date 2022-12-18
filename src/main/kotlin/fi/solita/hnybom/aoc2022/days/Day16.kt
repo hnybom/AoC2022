@@ -1,5 +1,6 @@
 package fi.solita.hnybom.aoc2022.days
 
+import fi.solita.hnybom.aoc2022.utils.Helpers
 import java.io.File
 class Day16 {
 
@@ -9,14 +10,16 @@ class Day16 {
         override fun toString() = EssentialDataInt(this).toString()
     }
 
-    data class TraveledNode(val valve: Valve, val opened: Boolean, val timeLeft: Int)
+    data class TraveledNode(val valve: Valve, val opened: Boolean, val timeLeft: Long, var who : String = "me")
 
     private data class EssentialDataInt(val id: String, val flow: Int, val pathIds: List<String>) {
         constructor(v: Valve) : this(id = v.id, flow = v.flow, pathIds = v.pathIds)
     }
 
+    private data class DijkstraResult(val target: Valve, val timeCost: Long, val route: Map<Valve, Valve?> )
+
     private val input =
-        File("/home/henriny/work/own/AoC2022/src/main/resources/input16_test.txt")
+        File("/Users/hnybom/work/AoC2022/src/main/resources/input16.txt")
             .readLines()
             .map {
                 val rg = lineRegex.find(it)
@@ -24,7 +27,7 @@ class Day16 {
                 Valve(id, flow.toInt(), ArrayList(), pathStr.split(",").map { it.trim() })
             }.associateBy { it.id }
 
-    private val priorityList = input.values.sortedByDescending { it.flow }
+    private val priorityList = input.values.sortedByDescending { it.flow }.filter { it.flow > 0 }
 
     init {
         input.values.forEach {valve ->
@@ -34,9 +37,14 @@ class Day16 {
 
     private val start = input["AA"]!!
 
-    private fun dijkstra(map: Map<Coordinate, Valve>, start: Valve, end : Valve) : Long {
-        val costs = map.values.associateWith { Long.MAX_VALUE }.toMutableMap()
-        val route = map.values.associateWith<Valve, Valve?> { null }.toMutableMap()
+    private val pathCache = HashMap<Pair<Valve, Valve>, DijkstraResult>()
+
+    private fun dijkstra(list: Collection<Valve>, start: Valve, end : Valve) : DijkstraResult? {
+        val c = pathCache[start to end]
+        if(c != null) return c
+
+        val costs = list.associateWith { Long.MAX_VALUE }.toMutableMap()
+        val route = list.associateWith<Valve, Valve?> { null }.toMutableMap()
 
         costs[start] = 0
         val q = mutableListOf(start)
@@ -50,49 +58,110 @@ class Day16 {
                     costs[v] = alt
                     route[v] = u
                     if (v == end) {
-                        return alt
+                        val r = DijkstraResult(v, alt, route.toMap())
+                        pathCache[start to end] = r
+                        return r
                     }
                     q.add(v)
                 }
             }
         }
-        return 0L
+        return null
     }
 
-    private fun travel(currentValve: Valve, path: List<TraveledNode>, time: Int): List<List<TraveledNode>> {
-        val node = if(time > 0 && currentValve.flow > 0 && path.find { it.valve == currentValve }?.opened != true) {
-            TraveledNode(currentValve, true, time - 1)
-        }
-        else TraveledNode(currentValve, false, time )
+    private fun optimize(currentValve: Valve, path: List<TraveledNode>, timeLeft: Long): List<List<TraveledNode>> {
 
-        if(node.timeLeft == 0) {
-            return listOf(path + node)
+        val targetCandidates = priorityList.filter { !path.map { it.valve }.contains(it) }.mapNotNull {
+            dijkstra(input.values, currentValve, it)
         }
 
-        val travels = currentValve.paths.flatMap { valve ->
-            if(path.find { it.valve == valve }?.opened != true) travel(valve, path + node, time - 1)
-            else emptyList()
+        val prioritizedCandidates = targetCandidates.map {
+            val timeAtTarget = timeLeft - it.timeCost
+            (timeAtTarget - 1) * it.target.flow to TraveledNode(it.target, true, timeAtTarget - 1)
+        }.filter { it.first > 0 }.sortedByDescending { it.first }
+
+        val permutations = prioritizedCandidates
+            .flatMap { selectThis ->
+                val newPath = path + selectThis.second
+                optimize(selectThis.second.valve, newPath, selectThis.second.timeLeft)
+            }
+
+        return permutations.ifEmpty { listOf(path) }
+
+    }
+
+    private fun optimizeWithRonsu(currentValveForMe: Valve, currentValveForRonsu: Valve, myPath: List<TraveledNode>,
+                                  ronsuPath: List<TraveledNode>, timeLeftForMe: Long, timeLeftForRonsu: Long): List<List<TraveledNode>> {
+
+        val alreadyVisited = myPath + ronsuPath
+        val alreadyVisitedValves  = alreadyVisited.map { it.valve }
+
+        val targetCandidatesForMe = priorityList.filter { !alreadyVisitedValves.contains(it) }.mapNotNull {
+            dijkstra(input.values, currentValveForMe, it)
         }
 
-        return travels.ifEmpty { return listOf(path + node) }
+        val targetCandidatesForRonsu = priorityList.filter { !alreadyVisitedValves.contains(it) }.mapNotNull {
+            dijkstra(input.values, currentValveForRonsu, it)
+        }
+
+        val prioritizedCandidatesForMe = targetCandidatesForMe.map {
+            val timeAtTarget = timeLeftForMe - it.timeCost
+            (timeAtTarget - 1) * it.target.flow to TraveledNode(it.target, true, timeAtTarget - 1)
+        }.filter { it.first > 0 }
+
+        val prioritizedCandidatesForRonsu = targetCandidatesForRonsu.map {
+            val timeAtTarget = timeLeftForRonsu - it.timeCost
+            (timeAtTarget - 1) * it.target.flow to TraveledNode(it.target, true, timeAtTarget - 1, "Ronsu")
+        }.filter { it.first > 0 }
+
+        val permutations = prioritizedCandidatesForMe
+            .flatMap { selectThis ->
+
+                prioritizedCandidatesForRonsu.filter { it.second.valve.id != selectThis.second.valve.id }.flatMap { ronsuGoHere ->
+
+                    val myNewPath = myPath + selectThis.second
+                    val ronsuNewPath = ronsuPath + ronsuGoHere.second
+
+                    optimizeWithRonsu(selectThis.second.valve, ronsuGoHere.second.valve, myNewPath, ronsuNewPath,
+                        selectThis.second.timeLeft, ronsuGoHere.second.timeLeft)
+                }
+            }
+
+        val onlyRonsu = if(prioritizedCandidatesForMe.isEmpty()) {
+            prioritizedCandidatesForRonsu.flatMap { ronsuGoHere ->
+                val ronsuNewPath = ronsuPath + ronsuGoHere.second
+
+                optimizeWithRonsu(currentValveForMe, ronsuGoHere.second.valve, myPath, ronsuNewPath,
+                    timeLeftForMe - 1, ronsuGoHere.second.timeLeft)
+            }
+        } else emptyList()
+
+        return (permutations + onlyRonsu).ifEmpty { listOf(alreadyVisited) }
 
     }
 
     fun part1(): String {
-        val paths = travel(start, emptyList(), 30)
-        val maxFlows = paths.map {path ->
-            val sumOfPath = path.map {
-                if (it.opened) it.valve.flow * it.timeLeft
-                else 0
-            }.sum()
-            path to sumOfPath
-        }.sortedByDescending { it.second }
-        return "Max flow: ${maxFlows.maxOf { it.second }}"
+        val p = Helpers.PerformanceTime()
+        val listOfPaths = optimize(start, emptyList(), 30)
+        val result = listOfPaths.map { pathCanditate ->
+            pathCanditate.sumOf {
+                it.valve.flow * it.timeLeft
+            }
+        }
+        p.time()
+        return "Max flow: ${result.max()}"
     }
 
     fun part2(): String {
-
-        return ""
+        val p = Helpers.PerformanceTime()
+        val listOfPaths = optimizeWithRonsu(start, start, emptyList(), emptyList(), 26, 26)
+        val result = listOfPaths.map { pathCanditate ->
+            pathCanditate.sumOf {
+                it.valve.flow * it.timeLeft
+            } to pathCanditate
+        }.sortedByDescending { it.first }
+        p.time()
+        return "Max flow: ${result.maxOf { it.first }}" 
     }
 }
 fun main(args: Array<String>) {
